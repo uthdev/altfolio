@@ -49,18 +49,24 @@ pnpm run client:dev  # Frontend on http://localhost:5173
 ### Health Check
 Visit http://localhost:5000/api/health to verify the backend is running.
 
+### API Documentation
+Visit http://localhost:5000/api-docs to view the interactive Swagger API documentation.
+
 ## 📁 Project Structure
 
 ```
 altfolio/
 ├── server/                 # Express.js backend
 │   ├── src/
+│   │   ├── controllers/    # Request handlers
+│   │   ├── services/       # Business logic
 │   │   ├── models/         # Mongoose schemas
 │   │   ├── routes/         # API routes
 │   │   ├── middleware/     # Auth & validation
 │   │   ├── types/          # TypeScript types
 │   │   ├── scripts/        # Seed scripts
 │   │   └── index.ts        # Server entry point
+│   ├── dist/               # Compiled JavaScript
 │   ├── .env                # Environment variables
 │   └── package.json
 ├── client/                 # React frontend
@@ -71,6 +77,7 @@ altfolio/
 │   │   ├── types/          # TypeScript types
 │   │   ├── utils/          # Utilities
 │   │   └── App.tsx         # App entry point
+│   ├── dist/               # Built assets
 │   ├── .env                # Environment variables
 │   └── package.json
 └── package.json            # Root workspace config
@@ -115,21 +122,41 @@ pnpm run seed             # Seed database with sample data
 - `owners`: Array of user IDs (many-to-many relationship)
 
 ### API Endpoints
+
+#### Health & Auth
 - `GET /api/health` - Health check
 - `POST /api/auth/login` - User authentication
-- `GET /api/investments` - List investments
+- `POST /api/auth/register` - Create new account
+- `PUT /api/auth/users/:id/role` - Update user role (admin only)
+
+#### Investments
+- `GET /api/investments` - List all investments
+- `GET /api/investments/:id` - Get investment by ID
 - `POST /api/investments` - Create investment (admin only)
 - `PUT /api/investments/:id` - Update investment (admin only)
 - `DELETE /api/investments/:id` - Delete investment (admin only)
-- `GET /api/analytics/summary` - Investment analytics
+
+#### Analytics
+- `GET /api/analytics/summary` - Investment analytics with totals, by-type, and timeline
+
+## 🏗️ Backend Architecture
+
+The backend follows a clean architecture pattern with separation of concerns:
+
+- **Routes**: Define endpoints and middleware chains
+- **Controllers**: Handle HTTP requests/responses
+- **Services**: Business logic and data access
+- **Models**: Mongoose schemas with TypeScript
+- **Middleware**: Authentication, validation, and error handling
 
 ## 🔒 Security Features
 
-- JWT token authentication
-- Role-based access control
-- Zod schema validation
+- JWT token authentication with typed payloads
+- Role-based access control (admin/viewer)
+- Zod schema validation with middleware
 - CORS configuration
 - Input sanitization
+- Password hashing with bcryptjs
 - Date handling with timezone considerations
 
 ## 🛠️ Tech Stack
@@ -141,6 +168,7 @@ pnpm run seed             # Seed database with sample data
 - Zod for validation
 - bcryptjs for password hashing
 - CORS for cross-origin requests
+- Swagger for API documentation
 
 ### Frontend
 - React 19 with TypeScript
@@ -200,13 +228,32 @@ NODE_ENV=development
 VITE_API_URL=http://localhost:5000/api
 ```
 
+## 🗃️ Sample Data
+
+Run the seed script to populate the database:
+
+```bash
+pnpm run seed
+```
+
+**Test Accounts:**
+- **Admin**: `admin@altfolio.com` / `admin123`
+- **Viewer**: `viewer@altfolio.com` / `viewer123`
+
+**Sample Investments:**
+- TechStart Inc. (Startup) - $50K → $75K
+- Crypto Growth Fund (Crypto Fund) - $25K → $22K
+- Organic Farm Co. (Farmland) - $100K → $110K
+- Vintage Art Collection (Collectible) - $15K → $18K
+
 ## 🤝 Contributing
 
 1. Follow TypeScript strict mode
-2. Use Zod for all validation schemas
-3. Maintain consistent code formatting with Prettier
-4. Write meaningful commit messages
-5. Test both admin and viewer user flows
+2. Use controller → service → model architecture
+3. Use Zod for all validation schemas
+4. Maintain consistent code formatting with Prettier
+5. Write meaningful commit messages
+6. Test both admin and viewer user flows
 
 ## 📄 License
 

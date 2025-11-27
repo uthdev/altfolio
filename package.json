@@ -12,7 +12,8 @@
     "client:build": "cd client && pnpm run build",
     "lint": "pnpm run server:lint && pnpm run client:lint",
     "server:lint": "cd server && pnpm run lint",
-    "client:lint": "cd client && pnpm run lint"
+    "client:lint": "cd client && pnpm run lint",
+    "seed": "cd server && pnpm run seed"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
