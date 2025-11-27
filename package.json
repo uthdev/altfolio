@@ -1,0 +1,23 @@
+{
+  "name": "altfolio",
+  "version": "1.0.0",
+  "description": "Alternative Investments Tracker",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm run server:dev\" \"pnpm run client:dev\"",
+    "server:dev": "cd server && pnpm run dev",
+    "client:dev": "cd client && pnpm run dev",
+    "build": "pnpm run server:build && pnpm run client:build",
+    "server:build": "cd server && pnpm run build",
+    "client:build": "cd client && pnpm run build",
+    "lint": "pnpm run server:lint && pnpm run client:lint",
+    "server:lint": "cd server && pnpm run lint",
+    "client:lint": "cd client && pnpm run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["fintech", "investments", "portfolio", "tracker"],
+  "author": "",
+  "license": "ISC"
+}
