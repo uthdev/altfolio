@@ -102,11 +102,6 @@ router.post('/register', validateBody(RegisterSchema), AuthController.register);
  *             schema:
  *               $ref: '#/components/schemas/ApiError'
  */
-router.put('/users/:id/role', 
-  authenticateToken, 
-  requireAdmin, 
-  validateBody(UpdateUserRoleSchema), 
-  AuthController.updateUserRole
-);
+
 
 export default router;

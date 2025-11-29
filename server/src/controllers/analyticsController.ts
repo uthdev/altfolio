@@ -6,7 +6,9 @@ import logger from '../utils/logger';
 export class AnalyticsController {
   static async getSummary(req: AuthRequest, res: Response) {
     try {
-      const summary = await AnalyticsService.getSummary();
+      const { ownerId } = req.query;
+      const filters = ownerId ? { ownerId: ownerId as string } : {};
+      const summary = await AnalyticsService.getSummary(filters);
       return res.json(summary);
     } catch (error) {
       logger.error('Analytics error:', error);

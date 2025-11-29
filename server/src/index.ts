@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import authRoutes from './routes/auth';
+import userRoutes from './routes/users';
 import investmentRoutes from './routes/investments';
 import analyticsRoutes from './routes/analytics';
 import logger from './utils/logger';
@@ -53,6 +54,7 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/investments', investmentRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
