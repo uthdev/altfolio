@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { Types } from 'mongoose';
 
 // User Types
-export const UserRole = z.enum(['admin', 'viewer']);
-export type UserRole = z.infer<typeof UserRole>;
+export const UserRoleSchema = z.enum(['admin', 'viewer']);
+export type UserRole = z.infer<typeof UserRoleSchema>;
 
 export interface IUser {
   _id: Types.ObjectId;
@@ -16,8 +16,8 @@ export interface IUser {
 }
 
 // Investment Types
-export const AssetType = z.enum(['Startup', 'Crypto Fund', 'Farmland', 'Collectible', 'Other']);
-export type AssetType = z.infer<typeof AssetType>;
+export const AssetTypeSchema = z.enum(['Startup', 'Crypto Fund', 'Farmland', 'Collectible', 'Other']);
+export type AssetType = z.infer<typeof AssetTypeSchema>;
 
 export interface IInvestment {
   _id: Types.ObjectId;
@@ -41,16 +41,16 @@ export const RegisterSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   name: z.string().min(1).max(100),
-  role: UserRole.optional().default('viewer'),
+  role: UserRoleSchema.optional().default('viewer'),
 });
 
 export const UpdateUserRoleSchema = z.object({
-  role: UserRole,
+  role: UserRoleSchema,
 });
 
 export const CreateInvestmentSchema = z.object({
   assetName: z.string().min(1).max(100),
-  assetType: AssetType,
+  assetType: AssetTypeSchema,
   investedAmount: z.number().positive(),
   investmentDate: z.string().datetime(),
   currentValue: z.number().positive(),

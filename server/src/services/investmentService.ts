@@ -1,11 +1,57 @@
 import { Investment } from '../models/Investment';
 import { CreateInvestmentData, UpdateInvestmentData } from '../types';
 
+interface GetInvestmentsQuery {
+  page?: number;
+  limit?: number;
+  assetType?: string;
+  owner?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 export class InvestmentService {
-  static async getAllInvestments() {
-    return Investment.find()
-      .populate('owners', 'name email')
-      .sort({ createdAt: -1 });
+  static async getAllInvestments(query: GetInvestmentsQuery = {}) {
+    const {
+      page = 1,
+      limit = 10,
+      assetType,
+      owner,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = query;
+
+    // Build filter object
+    const filter: Record<string, unknown> = {};
+    if (assetType) filter.assetType = assetType;
+    if (owner) filter.owners = owner;
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+    const sortObj: Record<string, 1 | -1> = {};
+    sortObj[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    // Execute query with pagination
+    const [investments, total] = await Promise.all([
+      Investment.find(filter)
+        .populate('owners', 'name email')
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limit),
+      Investment.countDocuments(filter)
+    ]);
+
+    return {
+      investments,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      }
+    };
   }
 
   static async getInvestmentById(id: string) {
@@ -26,7 +72,7 @@ export class InvestmentService {
   }
 
   static async updateInvestment(id: string, data: UpdateInvestmentData) {
-    const updateData: any = { ...data };
+    const updateData = { ...data };
     if (updateData.investmentDate) {
       updateData.investmentDate = new Date(updateData.investmentDate);
     }

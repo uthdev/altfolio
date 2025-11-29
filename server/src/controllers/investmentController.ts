@@ -1,14 +1,24 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { InvestmentService } from '../services/investmentService';
+import logger from '../utils/logger';
 
 export class InvestmentController {
   static async getAllInvestments(req: AuthRequest, res: Response) {
     try {
-      const investments = await InvestmentService.getAllInvestments();
-      return res.json(investments);
+      const query = {
+        page: req.query.page ? parseInt(req.query.page as string) : undefined,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+        assetType: req.query.assetType as string,
+        owner: req.query.owner as string,
+        sortBy: req.query.sortBy as string,
+        sortOrder: req.query.sortOrder as 'asc' | 'desc'
+      };
+      
+      const result = await InvestmentService.getAllInvestments(query);
+      return res.json(result);
     } catch (error) {
-      console.error('Get investments error:', error);
+      logger.error('Get investments error:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   }
@@ -23,7 +33,7 @@ export class InvestmentController {
       
       return res.json(investment);
     } catch (error) {
-      console.error('Get investment error:', error);
+      logger.error('Get investment error:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   }
@@ -33,7 +43,7 @@ export class InvestmentController {
       const investment = await InvestmentService.createInvestment(req.body);
       return res.status(201).json(investment);
     } catch (error) {
-      console.error('Create investment error:', error);
+      logger.error('Create investment error:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   }
@@ -48,7 +58,7 @@ export class InvestmentController {
 
       return res.json(investment);
     } catch (error) {
-      console.error('Update investment error:', error);
+      logger.error('Update investment error:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   }
@@ -63,7 +73,7 @@ export class InvestmentController {
       
       return res.json({ message: 'Investment deleted successfully' });
     } catch (error) {
-      console.error('Delete investment error:', error);
+      logger.error('Delete investment error:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   }

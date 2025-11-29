@@ -7,6 +7,7 @@ import { swaggerSpec } from './config/swagger';
 import authRoutes from './routes/auth';
 import investmentRoutes from './routes/investments';
 import analyticsRoutes from './routes/analytics';
+import logger from './utils/logger';
 
 dotenv.config();
 
@@ -56,8 +57,8 @@ app.use('/api/investments', investmentRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled error:', err);
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error('Unhandled error:', { error: err.message, stack: err.stack, url: req.url, method: req.method });
   res.status(500).json({ message: 'Internal server error' });
 });
 
@@ -75,9 +76,9 @@ const connectDB = async () => {
     }
     
     await mongoose.connect(mongoUri);
-    console.log('MongoDB connected successfully');
+    logger.info('MongoDB connected successfully');
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    logger.error('MongoDB connection error:', error);
     process.exit(1);
   }
 };
@@ -87,11 +88,14 @@ const startServer = async () => {
   await connectDB();
   
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
+    logger.info(`Server running on port ${PORT}`);
+    logger.info(`Health check: http://localhost:${PORT}/api/health`);
   });
 };
 
-startServer().catch(console.error);
+startServer().catch((error) => {
+  logger.error('Failed to start server:', error);
+  process.exit(1);
+});
 
 export default app;

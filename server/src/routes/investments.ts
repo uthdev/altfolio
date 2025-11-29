@@ -10,19 +10,74 @@ const router: Router = Router();
  * @swagger
  * /investments:
  *   get:
- *     summary: Get all investments
+ *     summary: Get all investments with pagination and filtering
  *     tags: [Investments]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *       - in: query
+ *         name: assetType
+ *         schema:
+ *           type: string
+ *           enum: [Startup, Crypto Fund, Farmland, Collectible, Other]
+ *         description: Filter by asset type
+ *       - in: query
+ *         name: owner
+ *         schema:
+ *           type: string
+ *         description: Filter by owner ID
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: createdAt
+ *         description: Field to sort by
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
  *     responses:
  *       200:
- *         description: List of investments
+ *         description: Paginated list of investments
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Investment'
+ *               type: object
+ *               properties:
+ *                 investments:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Investment'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: number
+ *                     limit:
+ *                       type: number
+ *                     total:
+ *                       type: number
+ *                     pages:
+ *                       type: number
+ *                     hasNext:
+ *                       type: boolean
+ *                     hasPrev:
+ *                       type: boolean
  */
 router.get('/', authenticateToken, InvestmentController.getAllInvestments);
 
