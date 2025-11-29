@@ -73,7 +73,7 @@ export class InvestmentService {
 
   static async updateInvestment(id: string, data: UpdateInvestmentData) {
     const updateData: Record<string, unknown> = { ...data };
-    if (updateData.investmentDate) {
+    if (updateData.investmentDate && (typeof updateData.investmentDate === 'string' || updateData.investmentDate instanceof Date)) {
       updateData.investmentDate = new Date(updateData.investmentDate);
     }
 

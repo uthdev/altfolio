@@ -33,10 +33,10 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-// Rate limiting
+// Rate limiting - more lenient in development
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Higher limit in dev
   message: {
     error: 'Too many requests from this IP, please try again later.',
   },
@@ -46,7 +46,7 @@ const limiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 auth requests per windowMs
+  max: process.env.NODE_ENV === 'production' ? 5 : 50, // Much higher limit in dev
   message: {
     error: 'Too many authentication attempts, please try again later.',
   },
@@ -58,9 +58,19 @@ app.use(limiter);
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL || 'http://localhost:5173'
-    : ['http://localhost:5173', 'http://localhost:3000'],
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (process.env.NODE_ENV === 'production') {
+      const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+      return callback(null, origin === allowedOrigin);
+    }
+    
+    // Development: Allow localhost with ports 3000, 5173-5180
+    const devOriginRegex = /^http:\/\/localhost:(3000|517[3-9]|5180)$/;
+    return callback(null, devOriginRegex.test(origin));
+  },
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -138,7 +148,6 @@ const connectDB = async (retries = 5) => {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-      bufferMaxEntries: 0,
       retryWrites: true,
     };
     

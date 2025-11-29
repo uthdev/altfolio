@@ -13,23 +13,21 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
         .trim();
     }
     if (typeof value === 'object' && value !== null) {
-      const sanitized: Record<string, unknown> = Array.isArray(value) ? [] : {};
+      if (Array.isArray(value)) {
+        return value.map(item => sanitizeValue(item));
+      }
+      const sanitized: Record<string, unknown> = {};
       for (const key in value) {
-        sanitized[key] = sanitizeValue(value[key]);
+        sanitized[key] = sanitizeValue((value as Record<string, unknown>)[key]);
       }
       return sanitized;
     }
     return value;
   };
 
+  // Only sanitize body (query and params are read-only in newer Express)
   if (req.body) {
     req.body = sanitizeValue(req.body);
-  }
-  if (req.query) {
-    req.query = sanitizeValue(req.query);
-  }
-  if (req.params) {
-    req.params = sanitizeValue(req.params);
   }
 
   next();

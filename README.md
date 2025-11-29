@@ -216,17 +216,51 @@ pnpm run build
 ## 📝 Environment Variables
 
 ### Server (.env)
-```
-PORT=5000
+```bash
+# Required Variables
 MONGO_URI=mongodb://localhost:27017/altfolio
-JWT_SECRET=your-super-secret-jwt-key
+JWT_SECRET=your-super-secure-jwt-secret-key-at-least-32-characters-long
+
+# Optional Variables
+PORT=5000
 NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+
+# Security Settings (Production)
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+AUTH_RATE_LIMIT_MAX=5
 ```
 
 ### Client (.env)
-```
+```bash
+# Required Variables
 VITE_API_URL=http://localhost:5000/api
+
+# Optional Variables (Development)
+VITE_APP_NAME=Altfolio
+VITE_APP_VERSION=1.0.0
 ```
+
+## 🧪 Testing
+
+### Run Tests
+```bash
+# Backend tests
+cd server
+pnpm test
+
+# Frontend tests (if implemented)
+cd client
+pnpm test
+```
+
+### Test Coverage
+- Authentication endpoints
+- Role-based access control
+- Investment CRUD operations
+- Input validation
+- Error handling
 
 ## 🗃️ Sample Data
 
@@ -254,6 +288,118 @@ pnpm run seed
 4. Maintain consistent code formatting with Prettier
 5. Write meaningful commit messages
 6. Test both admin and viewer user flows
+
+## 📚 API Documentation
+
+### Authentication Endpoints
+
+#### POST /api/auth/login
+```json
+{
+  "email": "admin@altfolio.com",
+  "password": "admin123"
+}
+```
+
+#### POST /api/auth/register
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "SecurePass123!",
+  "role": "viewer"
+}
+```
+
+### Investment Endpoints
+
+#### GET /api/investments
+Query parameters:
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 10)
+- `assetType`: Filter by asset type
+- `sortBy`: Sort field (default: createdAt)
+- `sortOrder`: asc | desc (default: desc)
+
+#### POST /api/investments (Admin only)
+```json
+{
+  "assetName": "TechStart Inc.",
+  "assetType": "Startup",
+  "investedAmount": 50000,
+  "investmentDate": "2024-01-15T00:00:00.000Z",
+  "currentValue": 75000,
+  "owners": ["userId1", "userId2"]
+}
+```
+
+### Analytics Endpoints
+
+#### GET /api/analytics/summary
+Query parameters:
+- `ownerId`: Filter by specific owner
+
+Returns:
+```json
+{
+  "totalInvested": 185000,
+  "totalCurrentValue": 225000,
+  "totalReturn": 40000,
+  "returnPercentage": 21.62,
+  "byAssetType": [...],
+  "timeline": [...]
+}
+```
+
+### User Management Endpoints
+
+#### GET /api/users
+Returns list of all users (authenticated users only)
+
+#### PUT /api/users/:id/role (Admin only)
+```json
+{
+  "role": "admin"
+}
+```
+
+## 🔐 Security Features
+
+- **JWT Authentication**: Secure token-based authentication
+- **Role-based Access Control**: Admin and viewer roles
+- **Rate Limiting**: Protection against brute force attacks
+- **Input Sanitization**: XSS and injection prevention
+- **Password Validation**: Strong password requirements
+- **CORS Configuration**: Secure cross-origin requests
+- **Security Headers**: Helmet.js security headers
+- **Environment Validation**: Zod-based environment validation
+
+## 🏗️ Architecture
+
+### Backend Structure
+```
+server/src/
+├── controllers/     # Request handlers
+├── services/        # Business logic
+├── models/          # Mongoose schemas
+├── routes/          # API routes
+├── middleware/      # Auth, validation, security
+├── types/           # TypeScript definitions
+├── utils/           # Utilities (logger, etc.)
+├── config/          # Configuration files
+└── __tests__/       # Test files
+```
+
+### Frontend Structure
+```
+client/src/
+├── components/      # Reusable components
+├── pages/           # Page components
+├── contexts/        # React contexts
+├── hooks/           # Custom hooks
+├── types/           # TypeScript definitions
+└── utils/           # Utilities
+```
 
 ## 📄 License
 
