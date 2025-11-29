@@ -8,7 +8,7 @@ interface AnalyticsFilters {
 export class AnalyticsService {
   static async getSummary(filters: AnalyticsFilters = {}) {
     // Build query based on filters
-    const query: any = {};
+    const query: Record<string, unknown> = {};
     if (filters.ownerId) {
       query.owners = new Types.ObjectId(filters.ownerId);
     }
@@ -36,7 +36,7 @@ export class AnalyticsService {
     }, {} as Record<string, { count: number; totalInvested: number; totalCurrentValue: number }>);
 
     const byAssetType = Object.entries(assetTypeMap).map(([assetType, data]) => ({
-      assetType: assetType as any,
+      assetType: assetType as 'Startup' | 'Crypto Fund' | 'Farmland' | 'Collectible' | 'Other',
       ...data,
     }));
 

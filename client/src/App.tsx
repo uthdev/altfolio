@@ -6,6 +6,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { InvestmentsPage } from './pages/InvestmentsPage';
 import { InvestmentFormPage } from './pages/InvestmentFormPage';
 import { InvestmentDetailPage } from './pages/InvestmentDetailPage';
+import { AdminPage } from './pages/AdminPage';
 
 function App() {
   return (
@@ -50,6 +51,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <InvestmentDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminPage />
               </ProtectedRoute>
             }
           />

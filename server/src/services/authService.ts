@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
-import { LoginRequest, RegisterRequest, UpdateUserRoleRequest } from '../types';
+import { LoginRequest, RegisterRequest } from '../types';
 
 export class AuthService {
   static async login(credentials: LoginRequest) {
