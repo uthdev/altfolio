@@ -33,14 +33,18 @@ export interface IInvestment {
 
 // Zod Validation Schemas
 export const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().email('Invalid email format').max(255),
+  password: z.string().min(1, 'Password is required').max(128),
 });
 
 export const RegisterSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-  name: z.string().min(1).max(100),
+  email: z.string().email('Invalid email format').max(255),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password too long')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
+  name: z.string().min(1, 'Name is required').max(100),
   role: UserRoleSchema.optional().default('viewer'),
 });
 
