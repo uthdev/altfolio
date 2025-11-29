@@ -2,6 +2,7 @@ import request from 'supertest';
 import app from '../index';
 import { User } from '../models/User';
 import { Investment } from '../models/Investment';
+import { InvestmentService } from '../services/investmentService';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
@@ -13,13 +14,13 @@ describe('Investment Endpoints', () => {
   let adminToken: string;
   let viewerToken: string;
   const adminUser = {
-    _id: 'admin123',
+    _id: '507f1f77bcf86cd799439011',
     name: 'Admin User',
     email: 'admin@example.com',
     role: 'admin'
   };
   const viewerUser = {
-    _id: 'viewer123',
+    _id: '507f1f77bcf86cd799439012',
     name: 'Viewer User',
     email: 'viewer@example.com',
     role: 'viewer'
@@ -79,6 +80,80 @@ describe('Investment Endpoints', () => {
         .get('/api/investments')
         .expect(401);
     });
+
+    it('should handle database errors', async () => {
+      mockInvestment.find = jest.fn().mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          sort: jest.fn().mockReturnValue({
+            skip: jest.fn().mockReturnValue({
+              limit: jest.fn().mockRejectedValue(new Error('Database error'))
+            })
+          })
+        })
+      });
+
+      await request(app)
+        .get('/api/investments')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(500);
+    });
+  });
+
+  describe('GET /api/investments/:id', () => {
+    const investmentId = 'inv123';
+
+    it('should return investment by ID for authenticated user', async () => {
+      const mockInvestment = {
+        _id: investmentId,
+        assetName: 'Test Investment',
+        assetType: 'Startup',
+        investedAmount: 10000,
+        currentValue: 12000,
+        owners: [adminUser._id]
+      };
+
+      Investment.findById = jest.fn().mockReturnValue({
+        populate: jest.fn().mockResolvedValue(mockInvestment)
+      });
+
+      const response = await request(app)
+        .get(`/api/investments/${investmentId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      expect(response.body).toMatchObject({
+        assetName: 'Test Investment',
+        assetType: 'Startup'
+      });
+    });
+
+    it('should return 404 for non-existent investment', async () => {
+      Investment.findById = jest.fn().mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null)
+      });
+
+      await request(app)
+        .get('/api/investments/nonexistent123')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(404);
+    });
+
+    it('should reject unauthenticated requests', async () => {
+      await request(app)
+        .get(`/api/investments/${investmentId}`)
+        .expect(401);
+    });
+
+    it('should handle database errors', async () => {
+      Investment.findById = jest.fn().mockReturnValue({
+        populate: jest.fn().mockRejectedValue(new Error('Database error'))
+      });
+
+      await request(app)
+        .get(`/api/investments/${investmentId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(500);
+    });
   });
 
   describe('POST /api/investments', () => {
@@ -95,19 +170,14 @@ describe('Investment Endpoints', () => {
       const mockCreatedInvestment = {
         _id: 'inv456',
         ...investmentData,
+        save: jest.fn().mockResolvedValue(true),
         populate: jest.fn().mockResolvedValue({
           _id: 'inv456',
           ...investmentData
-        }),
-        save: jest.fn().mockResolvedValue(true)
+        })
       };
 
-      // Mock Investment constructor
-      const mockInvestmentInstance = {
-        save: jest.fn().mockResolvedValue(mockCreatedInvestment),
-        populate: jest.fn().mockResolvedValue(mockCreatedInvestment)
-      };
-      (mockInvestment as any).mockImplementation(() => mockInvestmentInstance);
+      (Investment as any).mockImplementation(() => mockCreatedInvestment);
 
       const response = await request(app)
         .post('/api/investments')
@@ -135,6 +205,18 @@ describe('Investment Endpoints', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ assetName: 'Incomplete' })
         .expect(400);
+    });
+
+    it('should handle database errors during creation', async () => {
+      (Investment as any).mockImplementation(() => {
+        throw new Error('Database error');
+      });
+
+      await request(app)
+        .post('/api/investments')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(investmentData)
+        .expect(500);
     });
   });
 
@@ -173,6 +255,30 @@ describe('Investment Endpoints', () => {
         .send({ currentValue: 15000 })
         .expect(403);
     });
+
+    it('should return 404 for non-existent investment', async () => {
+      mockInvestment.findByIdAndUpdate = jest.fn().mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null)
+      });
+
+      await request(app)
+        .put('/api/investments/nonexistent123')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ currentValue: 15000 })
+        .expect(404);
+    });
+
+    it('should handle database errors during update', async () => {
+      mockInvestment.findByIdAndUpdate = jest.fn().mockReturnValue({
+        populate: jest.fn().mockRejectedValue(new Error('Database error'))
+      });
+
+      await request(app)
+        .put(`/api/investments/${investmentId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ currentValue: 15000 })
+        .expect(500);
+    });
   });
 
   describe('DELETE /api/investments/:id', () => {
@@ -195,6 +301,56 @@ describe('Investment Endpoints', () => {
         .delete(`/api/investments/${investmentId}`)
         .set('Authorization', `Bearer ${viewerToken}`)
         .expect(403);
+    });
+
+    it('should return 404 for non-existent investment', async () => {
+      mockInvestment.findByIdAndDelete = jest.fn().mockResolvedValue(null);
+
+      await request(app)
+        .delete('/api/investments/nonexistent123')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(404);
+    });
+
+    it('should handle database errors during deletion', async () => {
+      mockInvestment.findByIdAndDelete = jest.fn().mockRejectedValue(new Error('Database error'));
+
+      await request(app)
+        .delete(`/api/investments/${investmentId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(500);
+    });
+  });
+});
+
+describe('InvestmentService', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('getInvestmentById', () => {
+    it('should return investment when found', async () => {
+      const mockInvestment = {
+        _id: 'inv123',
+        assetName: 'Test Investment',
+        assetType: 'Startup'
+      };
+      Investment.findById = jest.fn().mockReturnValue({
+        populate: jest.fn().mockResolvedValue(mockInvestment)
+      });
+
+      const result = await InvestmentService.getInvestmentById('inv123');
+      expect(result).toEqual(mockInvestment);
+      expect(Investment.findById).toHaveBeenCalledWith('inv123');
+    });
+
+    it('should return null when investment not found', async () => {
+      Investment.findById = jest.fn().mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null)
+      });
+
+      const result = await InvestmentService.getInvestmentById('nonexistent');
+      expect(result).toBeNull();
     });
   });
 });

@@ -17,20 +17,16 @@ describe('Auth Endpoints', () => {
       };
 
       const mockCreatedUser = {
-        _id: 'user123',
+        _id: { toString: () => 'user123' },
         name: userData.name,
         email: userData.email,
         role: userData.role,
+        passwordHash: 'hashedpassword',
         save: jest.fn().mockResolvedValue(true)
       };
 
       mockUser.findOne = jest.fn().mockResolvedValue(null);
-      const userWithId = { 
-        ...mockCreatedUser, 
-        _id: { toString: () => 'user123' },
-        toString: () => 'user123'
-      };
-      mockUser.create = jest.fn().mockResolvedValue(userWithId);
+      (User as any).mockImplementation(() => mockCreatedUser);
 
       const response = await request(app)
         .post('/api/auth/register')
