@@ -199,14 +199,62 @@ The application uses a component-based architecture with:
 
 ## 🚀 Deployment
 
-### Backend
+### Docker (Recommended)
+
+#### Prerequisites
+- Docker Desktop installed and running
+- Docker Compose (included with Docker Desktop)
+
+#### Production Mode
+```bash
+# Build and start all services (MongoDB, Server, Client)
+docker-compose up --build
+
+# Run in background
+docker-compose up -d --build
+```
+
+#### Development Mode
+```bash
+# Development with hot reload
+docker-compose -f docker-compose.dev.yml up --build
+
+# Run in background
+docker-compose -f docker-compose.dev.yml up -d --build
+```
+
+#### Docker Services
+- **Frontend**: http://localhost:3000 (prod) / http://localhost:5173 (dev)
+- **Backend API**: http://localhost:5000/api
+- **API Docs**: http://localhost:5000/api-docs
+- **MongoDB**: localhost:27017 (admin:password123)
+
+#### Docker Commands
+```bash
+# View logs
+docker-compose logs
+docker-compose logs server
+
+# Stop services
+docker-compose down
+
+# Seed database
+docker-compose exec server pnpm run seed
+
+# Run tests
+docker-compose exec server pnpm test
+```
+
+### Manual Deployment
+
+#### Backend
 ```bash
 cd server
 pnpm run build
 pnpm start
 ```
 
-### Frontend
+#### Frontend
 ```bash
 cd client
 pnpm run build
